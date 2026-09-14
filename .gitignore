@@ -586,3 +586,4 @@ cython_debug/
 
 # Simulation recordings
 *.rrd
+src/mpm-explicit/recordings/

@@ -20,11 +20,10 @@ class Grid:
     new_velocities: wp.array3d[wp.vec3]
     forces: wp.array3d[wp.vec3]
 
-    is_active: wp.array3d[bool]
 
     @cached_property
     def flat_dimensions(self) -> int:
-        return self.dimensions[0] * self.dimensions[1] * self.dimensions[2]
+        return int(self.dimensions[0]) * int(self.dimensions[1]) * int(self.dimensions[2])
 
     def init(self, min_coord: wp.vec3, max_coord: wp.vec3, dimensions: wp.vec3ui):
         self.min_coord = min_coord
@@ -40,7 +39,6 @@ class Grid:
         self.velocities = wp.zeros(shape=self.dimensions, dtype=wp.vec3, device="cuda")
         self.new_velocities = wp.zeros(shape=self.dimensions, dtype=wp.vec3, device="cuda")
         self.forces = wp.zeros(shape=self.dimensions, dtype=wp.vec3, device="cuda")
-        self.is_active = wp.zeros(shape=self.dimensions, dtype=bool, device="cuda")
 
     def center(self) -> wp.vec3:
         return (self.min_coord + self.max_coord) * 0.5
@@ -54,10 +52,24 @@ class Grid:
 
     def clear(self):
         self.masses.zero_()
-        self.is_active.zero_()
         self.velocities.zero_()
         self.new_velocities.zero_()
         self.forces.zero_()
+
+
+@wp.func
+def grid_index_from_flat(grid: Grid, idx: wp.int32) -> tuple[wp.int32, wp.int32, wp.int32]:
+    dim_y = int(grid.dimensions[1])
+    dim_z = int(grid.dimensions[2])
+    i = idx // (dim_y * dim_z)
+    rem = idx % (dim_y * dim_z)
+    j = rem // dim_z
+    k = rem % dim_z
+    return (i, j, k)
+
+@wp.func
+def grid_index_to_flat(grid: Grid, i: wp.int32, j: wp.int32, k: wp.int32) -> wp.int32:
+    return (i * int(grid.dimensions[1]) + j) * int(grid.dimensions[2]) + k
 
 
 @wp.func

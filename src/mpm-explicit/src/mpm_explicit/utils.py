@@ -51,9 +51,9 @@ def safe_svd3(M: wp.mat33):
 
 @wp.func
 def extract_rotation(F: wp.mat33) -> wp.mat33:
-    U, sigma, V = safe_svd3(F)
+    U, _sigma, V = safe_svd3(F)
 
-    return U @ wp.transpose(V)
+    return U * wp.transpose(V)
 
 
 @wp.func
